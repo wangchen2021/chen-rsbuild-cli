@@ -21,6 +21,11 @@
     "typescript",
     "scaffold"
   ],
+  "files": [
+    "dist",
+    "templates",
+    "README.md"
+  ],
   "author": "Wang Chen",
   "license": "ISC",
   "dependencies": {

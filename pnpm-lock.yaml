@@ -14,6 +14,9 @@ importers:
       commander:
         specifier: ^14.0.3
         version: 14.0.3
+      download-git-repo:
+        specifier: ^3.0.2
+        version: 3.0.2
       ejs:
         specifier: ^4.0.1
         version: 4.0.1
@@ -33,9 +36,6 @@ importers:
       '@types/node':
         specifier: ^25.3.0
         version: 25.3.0
-      download-git-repo:
-        specifier: ^3.0.2
-        version: 3.0.2
       fs-extra:
         specifier: ^11.3.3
         version: 11.3.3

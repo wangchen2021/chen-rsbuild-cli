@@ -1,0 +1,12 @@
+# 源码目录
+src/
+# 开发配置
+tsconfig.json
+.eslintrc.js
+.prettierrc
+# 日志/缓存
+*.log
+node_modules/
+# 其他
+.DS_Store
+.gitignore

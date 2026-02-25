@@ -1,0 +1,28 @@
+networks:
+  rsbuild-nginx-8002-network:
+    driver: bridge
+
+# 服务配置
+services:
+  rsbuild-nginx:
+    image: docker.duguqinchen.com/chen-rsbuild-nginx:latest
+    container_name: rsbuild-nginx-8002
+    ports:
+      - "8002:80"
+      - "4432:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - /var/local/rsbuild.duguqinchen.com_nginx:/etc/nginx/cert
+    restart: always
+    networks:
+      - rsbuild-nginx-8002-network
+      # 可选：若前端需依赖后端服务，添加depends_on（按需启用）
+      # depends_on:
+      #   - nestjs-backend（若需关联后端服务，需确保后端服务在同一网络）
+      # 健康检查（生产级必备）
+      # healthcheck:
+      #   test: [ "CMD", "curl", "-f", "http://localhost/" ]
+      #   interval: 10s
+      #   timeout: 5s
+      #   retries: 3
+      #   start_period: 30s

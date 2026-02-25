@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "lib": ["DOM", "ES2020"],
+    "jsx": "react-jsx",
+    "target": "ES2020",
+    "noEmit": true,
+    "skipLibCheck": true,
+    "useDefineForClassFields": true,
+    /* modules */
+    "module": "ESNext",
+    "moduleDetection": "force",
+    "moduleResolution": "bundler",
+    "verbatimModuleSyntax": true,
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    "noUncheckedSideEffectImports": true,
+    /* type checking */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+    "plugins": [
+      {
+        "name": "typescript-plugin-css-modules",
+        "options": {
+          "customMatcher": "\\.(css|scss|less)$", // 匹配所有 CSS/SCSS 文件
+          "camelCase": true, // 支持驼峰式命名（如 styles.myButton）
+          "namedExports": true, // 启用命名导出
+          "classnameTransform": "camelCaseOnly" // 仅生成驼峰式类名
+        }
+      }
+    ]
+  },
+  "include": ["src", "types.d.ts", "config", "rsbuild.config.ts", "scripts/utils/downApifoxJson.ts"]
+}

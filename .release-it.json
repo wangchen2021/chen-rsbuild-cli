@@ -17,7 +17,7 @@
       "ignoreRecommendedBump": true
     },
     "@release-it/bumper": {
-      "out": []
+      "out": ["package.json"]
     }
   },
   "hooks": {

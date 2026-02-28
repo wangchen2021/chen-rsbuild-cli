@@ -1,6 +1,6 @@
 {
   "name": "@wangchen2021/chen-rsbuild-cli",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "React+RSBuild+TS Chen CLI",
   "main": "dist/index.js",
   "type": "module",

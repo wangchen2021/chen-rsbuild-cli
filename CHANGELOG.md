@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.0.6](https://github.com/wangchen2021/chen-rsbuild-cli/compare/v0.0.5...v0.0.6) (2026-02-28)
+
+### Features
+
+- 日志增强 ([26e2cf2](https://github.com/wangchen2021/chen-rsbuild-cli/commit/26e2cf29ae87dd43c9788113bfde7d2d81a0e3e0))
+
 ## [0.0.5](https://github.com/wangchen2021/chen-rsbuild-cli/compare/v0.0.4...v0.0.5) (2026-02-28)
 
 ### Features

@@ -13,11 +13,11 @@ on:
         type: choice
         options:
           - production
-          - staging
+          - development
       custom_tag:
-        description: '自定义 npm 标签（默认 beta，正式版填 latest）'
+        description: '自定义 npm 标签（默认 latest 测试版填 beta）'
         required: false
-        default: 'beta'
+        default: 'latest'
 
 env:
   NODE_VERSION: '24.11.0'          

@@ -1,5 +1,5 @@
 {
-  "name": "@wangchen2011/chen-rsbuild-cli",
+  "name": "@wangchen2021/chen-rsbuild-cli",
   "version": "1.0.0",
   "description": "React+RSBuild+TS Chen CLI",
   "main": "dist/index.js",

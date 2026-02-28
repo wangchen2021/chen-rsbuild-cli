@@ -1,10 +1,10 @@
-name: Enterprise NPM Publish
+name: Chen NPM Publish
 run-name: ${{ github.actor }} 发布包 🚀 [${{ github.ref_name }}]
 
 on:
   release:
-    types: [published]  # Release 正式发布后触发
-  workflow_dispatch:    # 支持手动触发（用于紧急发布/测试）
+    types: [published]
+  workflow_dispatch:
     inputs:
       deploy_env:
         description: '发布环境标识'
@@ -19,68 +19,73 @@ on:
         required: false
         default: 'beta'
 
-# 企业级环境配置（集中管理，便于维护）
 env:
-  NODE_VERSION: '20.18.0'          # 锁定 LTS 版本，避免兼容性问题
-  PNPM_VERSION: '10.20.0'          # 与本地/CI 环境一致的 pnpm 版本
-  NPM_REGISTRY: 'https://npm.pkg.github.com'  # GitHub Packages 地址
-  NPM_SCOPE: '@wangchen2021'       # 企业级作用域（GitHub 用户名/组织名）
-  PACKAGE_JSON_PATH: './package.json'  # 包配置文件路径（便于多包管理）
+  NODE_VERSION: '20.18.0'
+  PNPM_VERSION: '10.20.0'
+  NPM_REGISTRY: 'https://npm.pkg.github.com'
+  NPM_SCOPE: '@wangchen2021'
+  PACKAGE_JSON_PATH: './package.json'
+  PNPM_HOME: '/home/runner/.local/share/pnpm'  # 显式指定 pnpm 安装路径
 
 jobs:
   publish-package:
     runs-on: ubuntu-latest
-    # 企业级权限最小化原则：仅授予必要权限
     permissions:
-      packages: write               # 发布/管理 GitHub Packages
-      contents: read                # 读取仓库代码
-      id-token: write               # 可选：用于 OIDC 认证（替代静态令牌）
-    # 矩阵测试（可选：企业级多环境验证，可注释）
-    # strategy:
-    #   matrix:
-    #     node-version: [20.18.0]
-    #   fail-fast: false  # 一个环境失败不终止其他环境
+      packages: write
+      contents: read
+      id-token: write
 
     steps:
-      # 1. 拉取代码（含完整提交记录，用于版本审计）
+      # 1. 拉取代码
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          persist-credentials: false  # 避免权限冲突
+          persist-credentials: false
 
-      # 2. 环境预检（企业级合规要求）
+      # 2. 环境预检
       - name: Environment pre-check
         run: |
           echo "🔍 执行环境预检..."
-          # 检查核心文件存在性
           if [ ! -f "${{ env.PACKAGE_JSON_PATH }}" ]; then
             echo "❌ 核心文件缺失：${{ env.PACKAGE_JSON_PATH }}"
             exit 1
           fi
-          # 检查 Git 状态（避免脏工作区）
           if [ -n "$(git status --porcelain)" ]; then
             echo "⚠ 工作区存在未提交修改，请注意审计"
             git status --porcelain
           fi
 
-      # 3. 配置 Node.js 环境（企业级缓存策略）
-      - name: Setup Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'               # 缓存 pnpm 依赖，加速构建
-          cache-dependency-path: './pnpm-lock.yaml'
-          registry-url: ${{ env.NPM_REGISTRY }}
-
-      # 4. 安装 pnpm（锁定版本，避免自动升级）
+      # 修复点1：先安装 pnpm，并配置 PATH（关键）
       - name: Install pnpm ${{ env.PNPM_VERSION }}
         uses: pnpm/action-setup@v3
         with:
           version: ${{ env.PNPM_VERSION }}
           run_install: false
+        env:
+          PNPM_HOME: ${{ env.PNPM_HOME }}
 
-      # 5. 安装依赖（企业级依赖锁定）
+      # 修复点2：将 pnpm 路径加入系统 PATH（确保全局可调用）
+      - name: Add pnpm to PATH
+        run: |
+          echo "${{ env.PNPM_HOME }}" >> $GITHUB_PATH
+          echo "PNPM_HOME=${{ env.PNPM_HOME }}" >> $GITHUB_ENV
+          # 验证 pnpm 是否可调用
+          pnpm --version || {
+            echo "❌ pnpm 安装失败，路径：${{ env.PNPM_HOME }}"
+            exit 1
+          }
+
+      # 修复点3：后配置 Node.js，此时 pnpm 已存在，缓存逻辑可正常执行
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'               # 现在 pnpm 已安装，缓存逻辑正常
+          cache-dependency-path: './pnpm-lock.yaml'
+          registry-url: ${{ env.NPM_REGISTRY }}
+
+      # 4. 安装依赖（企业级依赖锁定）
       - name: Install dependencies
         run: |
           echo "📦 安装项目依赖（锁定版本）..."
@@ -90,17 +95,15 @@ jobs:
             echo "❌ 缺失 pnpm-lock.yaml，企业级项目必须锁定依赖版本"
             exit 1
           fi
-          # 依赖完整性校验（可选：企业级安全要求）
           pnpm audit --severity high || echo "⚠ 检测到高危依赖漏洞，请及时修复"
 
-      # 6. 构建项目（企业级构建规范）
+      # 5. 构建项目
       - name: Build project
         id: build
         run: |
           echo "🔨 执行项目构建..."
           if pnpm run build --help >/dev/null 2>&1; then
             pnpm run build --verbose
-            # 构建产物校验
             if [ ! -d "dist" ]; then
               echo "❌ 构建产物目录 dist 缺失"
               exit 1
@@ -108,22 +111,19 @@ jobs:
             echo "✅ 构建成功，产物大小：$(du -sh dist | awk '{print $1}')"
             echo "build_success=true" >> $GITHUB_OUTPUT
           else
-            echo "⚠ 无 build 脚本，跳过构建（企业级项目建议添加标准化构建流程）"
+            echo "⚠ 无 build 脚本，跳过构建"
             echo "build_success=false" >> $GITHUB_OUTPUT
           fi
 
-      # 7. 版本一致性校验（企业级发布合规）
+      # 6. 版本一致性校验
       - name: Validate version consistency
         id: version_check
         run: |
           echo "📊 校验版本一致性..."
-          # 提取 Release 版本（去除 v 前缀）
           RELEASE_VERSION="${{ github.ref_name }}"
           RELEASE_VERSION_CLEAN=${RELEASE_VERSION#v}
-          # 提取 package.json 版本
           PACKAGE_VERSION=$(pnpm pkg get version --file "${{ env.PACKAGE_JSON_PATH }}" | tr -d '"')
           
-          # 版本一致性校验
           if [ "$RELEASE_VERSION_CLEAN" != "$PACKAGE_VERSION" ]; then
             echo "❌ 版本不一致：Release($RELEASE_VERSION_CLEAN) ≠ Package($PACKAGE_VERSION)"
             exit 1
@@ -131,33 +131,28 @@ jobs:
           echo "✅ 版本校验通过：$PACKAGE_VERSION"
           echo "package_version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
 
-      # 8. 配置 npm 认证（企业级安全认证）
+      # 7. 配置 npm 认证
       - name: Configure npm authentication
         run: |
           echo "🔐 配置 npm 认证..."
-          # 生成安全的 .npmrc（仅当前会话有效）
           cat > .npmrc << EOF
           //npm.pkg.github.com/:_authToken=${{ secrets.NPM_TOKEN }}
           ${{ env.NPM_SCOPE }}:registry=${{ env.NPM_REGISTRY }}
           always-auth=true
           cache=false
           EOF
-          # 认证有效性校验
           npm whoami --registry="${{ env.NPM_REGISTRY }}" || {
             echo "❌ npm 认证失败，请检查 NPM_TOKEN 权限"
             exit 1
           }
-          # 审计 .npmrc 配置（避免敏感信息泄露）
           cat .npmrc | sed "s/_authToken=.*/_authToken=***REDACTED***/"
 
-      # 9. 发布包（核心步骤：pnpm publish）
+      # 8. 发布包（pnpm publish）
       - name: Publish package with pnpm
         id: publish
         run: |
           echo "🚀 开始发布包：${{ env.NPM_SCOPE }}/chen-rsbuild-cli@${{ steps.version_check.outputs.package_version }}"
-          # 企业级发布策略：指定标签，避免覆盖 latest
           CUSTOM_TAG="${{ github.event.inputs.custom_tag || 'beta' }}"
-          # 执行 pnpm publish（兼容 GitHub Packages 权限）
           pnpm publish \
             --registry="${{ env.NPM_REGISTRY }}" \
             --tag="$CUSTOM_TAG" \
@@ -170,7 +165,7 @@ jobs:
           echo "✅ 包发布成功，标签：$CUSTOM_TAG"
           echo "publish_tag=$CUSTOM_TAG" >> $GITHUB_OUTPUT
 
-      # 10. 发布后审计（企业级合规）
+      # 9. 发布后审计
       - name: Post-publish audit
         if: always()
         run: |
@@ -187,10 +182,8 @@ jobs:
           echo "GitHub Release：https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
           echo "========================================"
 
-      # 11. 失败通知（可选：企业级告警，可对接 Slack/邮件）
+      # 10. 失败通知
       - name: Send failure notification
         if: failure()
         run: |
           echo "🚨 包发布失败，请及时处理！"
-          # 企业级扩展：添加 Slack/钉钉/邮件告警逻辑
-          # curl -X POST -H "Content-Type: application/json" -d '{"text":"发布失败：${{ github.repository }}@${{ steps.version_check.outputs.package_version }}"}' ${{ secrets.SLACK_WEBHOOK }}

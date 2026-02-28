@@ -19,9 +19,8 @@ on:
         required: false
         default: 'beta'
 
-# 核心修复：匹配项目要求的 Node 24.x 版本
 env:
-  NODE_VERSION: '24.11.0'          # 改为项目要求的 24.x 版本
+  NODE_VERSION: '24.11.0'          # 项目要求的 Node 24.x 版本
   PNPM_VERSION: '10.20.0'          
   NPM_REGISTRY: 'https://npm.pkg.github.com'
   NPM_SCOPE: '@wangchen2021'
@@ -55,7 +54,7 @@ jobs:
             git status --porcelain
           fi
 
-      # 先安装 pnpm 并配置路径
+      # 1. 安装 pnpm 并配置路径
       - name: Install pnpm ${{ env.PNPM_VERSION }}
         uses: pnpm/action-setup@v3
         with:
@@ -68,12 +67,13 @@ jobs:
         run: |
           echo "${{ env.PNPM_HOME }}" >> $GITHUB_PATH
           echo "PNPM_HOME=${{ env.PNPM_HOME }}" >> $GITHUB_ENV
+          # 验证 pnpm 安装
           pnpm --version || {
             echo "❌ pnpm 安装失败，路径：${{ env.PNPM_HOME }}"
             exit 1
           }
 
-      # 配置项目要求的 Node 24.x 版本
+      # 2. 配置 Node.js 24.x 环境
       - name: Setup Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
         with:
@@ -82,33 +82,40 @@ jobs:
           cache-dependency-path: './pnpm-lock.yaml'
           registry-url: ${{ env.NPM_REGISTRY }}
 
+      # 3. 安装依赖（修复 ignore-engines 参数语法）
       - name: Install dependencies
         run: |
           echo "📦 安装项目依赖（锁定版本）..."
           if [ -f "pnpm-lock.yaml" ]; then
-            # 忽略 Node 版本警告（如需严格匹配可移除 --ignore-engines）
-            pnpm install --frozen-lockfile --prod=false --ignore-engines
+            # 核心修复：pnpm 用 --config.ignore-engines=true 替代 ignore-engines
+            pnpm install --frozen-lockfile --prod=false --config.ignore-engines=true
           else
             echo "❌ 缺失 pnpm-lock.yaml，企业级项目必须锁定依赖版本"
             exit 1
           fi
+          # 审计依赖（可选）
           pnpm audit --severity high || echo "⚠ 检测到高危依赖漏洞，请及时修复"
 
-      # 核心修复：修正 TS 编译命令，移除非法的 --verbose 参数
+      # 4. 构建项目（修复 TS --verbose 参数）
       - name: Build project
         id: build
         run: |
-          echo "🔨 执行项目构建（适配 Node 24.x + 修复 TS 参数）..."
-          # 检查 build 脚本并替换非法参数
+          echo "🔨 执行项目构建（修复 TS 编译参数）..."
+          # 先修正 package.json 中的 build 脚本（移除 --verbose）
+          if [ -f "package.json" ]; then
+            # 替换 tsc --verbose 为 tsc
+            sed -i 's/tsc --verbose/tsc/g' package.json
+            # 验证脚本修改
+            echo "✅ 修复后的 build 脚本：$(pnpm pkg get scripts.build | tr -d '"')"
+          fi
+
+          # 执行构建
           if pnpm run build --help >/dev/null 2>&1; then
-            # 方案1：直接执行修复后的编译命令（推荐）
-            tsc || {
-              echo "❌ 编译失败，尝试兼容模式"
-              # 兼容模式：移除 --verbose，保留核心编译逻辑
-              npm set-script build "tsc"
-              pnpm run build
+            pnpm run build --verbose 2>&1 || {
+              echo "❌ 构建失败，尝试直接执行 tsc"
+              tsc
             }
-            # 验证构建产物
+            # 验证产物
             if [ ! -d "dist" ]; then
               echo "❌ 构建产物目录 dist 缺失"
               exit 1
@@ -120,6 +127,7 @@ jobs:
             echo "build_success=false" >> $GITHUB_OUTPUT
           fi
 
+      # 5. 版本一致性校验
       - name: Validate version consistency
         id: version_check
         run: |
@@ -135,6 +143,7 @@ jobs:
           echo "✅ 版本校验通过：$PACKAGE_VERSION"
           echo "package_version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
 
+      # 6. 配置 npm 认证
       - name: Configure npm authentication
         run: |
           echo "🔐 配置 npm 认证..."
@@ -144,23 +153,26 @@ jobs:
           always-auth=true
           cache=false
           EOF
+          # 验证认证
           npm whoami --registry="${{ env.NPM_REGISTRY }}" || {
             echo "❌ npm 认证失败，请检查 NPM_TOKEN 权限"
             exit 1
           }
+          # 脱敏展示配置
           cat .npmrc | sed "s/_authToken=.*/_authToken=***REDACTED***/"
 
+      # 7. 发布包（修复 pnpm publish 的 ignore-engines 参数）
       - name: Publish package with pnpm
         id: publish
         run: |
           echo "🚀 开始发布包：${{ env.NPM_SCOPE }}/chen-rsbuild-cli@${{ steps.version_check.outputs.package_version }}"
-          CUSTOM_TAG="${{ github.actor.inputs.custom_tag || 'beta' }}"
-          # 忽略引擎警告发布
+          CUSTOM_TAG="${{ github.event.inputs.custom_tag || 'beta' }}"
+          # 核心修复：pnpm publish 用 --config.ignore-engines=true
           pnpm publish \
             --registry="${{ env.NPM_REGISTRY }}" \
             --tag="$CUSTOM_TAG" \
             --access restricted \
-            --ignore-engines \
+            --config.ignore-engines=true \
             --verbose 2>&1 || {
               echo "❌ pnpm 发布失败，错误日志："
               cat ~/.npm/_logs/*-debug.log 2>/dev/null
@@ -169,6 +181,7 @@ jobs:
           echo "✅ 包发布成功，标签：$CUSTOM_TAG"
           echo "publish_tag=$CUSTOM_TAG" >> $GITHUB_OUTPUT
 
+      # 8. 发布后审计
       - name: Post-publish audit
         if: always()
         run: |
@@ -186,3 +199,9 @@ jobs:
           echo "pnpm 版本：$(pnpm --version)"
           echo "GitHub Release：https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
           echo "========================================"
+
+      # 9. 失败通知
+      - name: Send failure notification
+        if: failure()
+        run: |
+          echo "🚨 包发布失败，请及时处理！"

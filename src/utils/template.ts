@@ -36,7 +36,7 @@ export const getTemplateDir = async (): Promise<string> => {
     return tempDir;
   } catch (err) {
     spinner.fail(chalk.red(`❌ 远程模板拉取失败：${(err as Error).message}`));
-    throw new Error('模板获取失败，请检查网络或远程仓库地址');
+    throw err;
   }
 };
 
@@ -44,7 +44,7 @@ export const getTemplateDir = async (): Promise<string> => {
 export const renderTemplate = async (
   templateDir: string,
   targetDir: string,
-  options: TemplateOptions
+  options: TemplateOptions,
 ): Promise<void> => {
   // 复制模板文件到目标目录
   await fs.copy(templateDir, targetDir);

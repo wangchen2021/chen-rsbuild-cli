@@ -76,7 +76,6 @@ program
       console.log(chalk.gray(`  cd ${options.projectName}`));
       console.log(chalk.gray('  pnpm install'));
       console.log(chalk.gray('  pnpm run dev'));
-
     } catch (error) {
       // 企业级：错误捕获+友好提示
       const err = error as Error;

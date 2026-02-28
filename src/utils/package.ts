@@ -2,11 +2,13 @@
 import { UserAnswers } from '../types';
 
 // npm 官方包名正则
-const NPM_NAME_REGEX = /^(?:(?:@(?:[a-z0-9-*~][a-z0-9-*._~]*)?\/[a-z0-9-._~])|[a-z0-9-~])[a-z0-9-._~]*$/;
+const NPM_NAME_REGEX =
+  /^(?:(?:@(?:[a-z0-9-*~][a-z0-9-*._~]*)?\/[a-z0-9-._~])|[a-z0-9-~])[a-z0-9-._~]*$/;
 
 /** 格式化包名（企业级规则） */
 export const formatPackageName = (rawName: string): string => {
-  let name = rawName.toLowerCase()
+  let name = rawName
+    .toLowerCase()
     .replace(/[\s\u4e00-\u9fa5!@#$%^&*()+=<>?/\\|{}[\]`~:;"]+/g, '-') // 替换非法字符
     .replace(/-+/g, '-') // 去重连字符
     .replace(/^[-./]+|[-./]+$/g, ''); // 去首尾特殊字符
@@ -31,7 +33,7 @@ export const validatePackageName = (input: string): boolean | string => {
 /** 整合用户输入（企业级：参数校验） */
 export const mergeUserOptions = (
   rawProjectName: string,
-  answers: UserAnswers
+  answers: UserAnswers,
 ): { projectName: string; author: string; projectDesc: string } => {
   const projectName = formatPackageName(answers.packageName || rawProjectName);
   return {

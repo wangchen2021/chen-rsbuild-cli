@@ -23,9 +23,7 @@
         "deprecated": false,
         "description": "",
         "operationId": "AppController_getHello",
-        "tags": [
-          "App"
-        ],
+        "tags": ["App"],
         "parameters": [],
         "responses": {
           "200": {
@@ -42,9 +40,7 @@
         "deprecated": false,
         "description": "",
         "operationId": "UserController_create",
-        "tags": [
-          "User"
-        ],
+        "tags": ["User"],
         "parameters": [],
         "requestBody": {
           "content": {
@@ -69,9 +65,7 @@
         "deprecated": false,
         "description": "",
         "operationId": "UserController_findAll",
-        "tags": [
-          "User"
-        ],
+        "tags": ["User"],
         "parameters": [],
         "responses": {
           "200": {
@@ -88,9 +82,7 @@
         "deprecated": false,
         "description": "",
         "operationId": "UserController_findOne",
-        "tags": [
-          "User"
-        ],
+        "tags": ["User"],
         "parameters": [
           {
             "name": "id",
@@ -116,9 +108,7 @@
         "deprecated": false,
         "description": "",
         "operationId": "UserController_update",
-        "tags": [
-          "User"
-        ],
+        "tags": ["User"],
         "parameters": [
           {
             "name": "id",
@@ -154,9 +144,7 @@
         "deprecated": false,
         "description": "",
         "operationId": "UserController_remove",
-        "tags": [
-          "User"
-        ],
+        "tags": ["User"],
         "parameters": [
           {
             "name": "id",
@@ -184,9 +172,7 @@
         "deprecated": false,
         "description": "",
         "operationId": "LoginController_create",
-        "tags": [
-          "Login"
-        ],
+        "tags": ["Login"],
         "parameters": [],
         "requestBody": {
           "content": {
@@ -220,9 +206,7 @@
         "deprecated": false,
         "description": "",
         "operationId": "LoginController_findAll",
-        "tags": [
-          "Login"
-        ],
+        "tags": ["Login"],
         "parameters": [],
         "responses": {
           "200": {
@@ -239,9 +223,7 @@
         "deprecated": false,
         "description": "",
         "operationId": "LoginController_findOne",
-        "tags": [
-          "Login"
-        ],
+        "tags": ["Login"],
         "parameters": [
           {
             "name": "id",
@@ -267,9 +249,7 @@
         "deprecated": false,
         "description": "",
         "operationId": "LoginController_update",
-        "tags": [
-          "Login"
-        ],
+        "tags": ["Login"],
         "parameters": [
           {
             "name": "id",
@@ -305,9 +285,7 @@
         "deprecated": false,
         "description": "",
         "operationId": "LoginController_remove",
-        "tags": [
-          "Login"
-        ],
+        "tags": ["Login"],
         "parameters": [
           {
             "name": "id",
@@ -354,10 +332,7 @@
             "example": "123456"
           }
         },
-        "required": [
-          "username",
-          "password"
-        ]
+        "required": ["username", "password"]
       },
       "UpdateLoginDto": {
         "type": "object",

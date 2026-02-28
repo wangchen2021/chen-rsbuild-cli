@@ -21,7 +21,7 @@ declare module 'download-git-repo' {
     repo: string,
     dest: string,
     options?: DownloadOptions,
-    callback?: (err: Error | null) => void
+    callback?: (err: Error | null) => void,
   ) => void;
 
   const download: DownloadGitRepo;

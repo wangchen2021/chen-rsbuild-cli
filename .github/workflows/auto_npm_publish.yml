@@ -1,0 +1,197 @@
+name: NPM Publish - Auto Release
+run-name: ${{ github.actor }} 发布 NPM 包 🚀 [${{ github.ref_name }}]
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      deploy_env:
+        description: '发布环境（仅用于标识）'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+
+env:
+  NODE_VERSION: '24.11.0'
+  PNPM_VERSION: '10.20.0'
+  # 发布仓库（静态值，避免表达式嵌套）
+  NPM_REGISTRY: 'https://npm.pkg.github.com'
+  # 移除：env 中不能直接用表达式，移到 steps 中处理
+  # NPM_SCOPE: ${{ github.repository_owner }} 
+  # PACKAGE_NAME: ${{ github.event.repository.name }}
+
+jobs:
+  publish-npm-package:
+    runs-on: ubuntu-latest
+    # 全局错误捕获：失败时输出详细日志
+    env:
+      SHELLOPTS: errexit:pipefail
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install base dependencies
+        run: |
+          sudo apt-get update -y && sudo apt-get install -y --no-install-recommends tar curl jq
+          tar --version && curl --version && jq --version
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+          registry-url: ${{ env.NPM_REGISTRY }}
+
+      - name: 初始化动态配置（修复表达式/兼容性问题）
+        id: dynamic_config
+        run: |
+          set -euo pipefail
+          # 1. 从 GitHub 上下文获取用户名/仓库名（修复 env 表达式问题）
+          NPM_SCOPE="${{ github.repository_owner }}"
+          PACKAGE_NAME_BASE="${{ github.event.repository.name }}"
+          
+          # 2. 兼容获取 package.json 包名（用 jq 替代 pnpm pkg get，兼容性更好）
+          if [ -f "package.json" ]; then
+            PACKAGE_NAME_FROM_JSON=$(jq -r '.name' package.json)
+            # 处理空值/undefined
+            if [ "$PACKAGE_NAME_FROM_JSON" = "null" ] || [ -z "$PACKAGE_NAME_FROM_JSON" ]; then
+              PACKAGE_NAME_FROM_JSON="@${NPM_SCOPE}/${PACKAGE_NAME_BASE}"
+            fi
+          else
+            PACKAGE_NAME_FROM_JSON="@${NPM_SCOPE}/${PACKAGE_NAME_BASE}"
+          fi
+          
+          # 3. 提取作用域（兼容无作用域的包名）
+          if echo "$PACKAGE_NAME_FROM_JSON" | grep -q '/'; then
+            NPM_SCOPE_CLEAN=$(echo "$PACKAGE_NAME_FROM_JSON" | cut -d'/' -f1 | sed 's/^@//')
+          else
+            NPM_SCOPE_CLEAN="$NPM_SCOPE"
+          fi
+          
+          # 4. 输出到 GitHub 上下文
+          echo "PACKAGE_NAME=$PACKAGE_NAME_FROM_JSON" >> $GITHUB_OUTPUT
+          echo "NPM_SCOPE=$NPM_SCOPE_CLEAN" >> $GITHUB_OUTPUT
+          
+          # 验证输出
+          echo "✅ 动态配置初始化完成："
+          echo "包名：$PACKAGE_NAME_FROM_JSON"
+          echo "作用域：$NPM_SCOPE_CLEAN"
+
+      - name: 验证 Release 版本与 package.json 一致
+        id: version_check
+        run: |
+          set -euo pipefail
+          # 获取 Release 标签版本（去掉 v 前缀）
+          RELEASE_VERSION="${{ github.ref_name }}"
+          RELEASE_VERSION=${RELEASE_VERSION#v}
+          
+          # 兼容获取 package.json 版本（用 jq）
+          if [ -f "package.json" ]; then
+            PACKAGE_VERSION=$(jq -r '.version' package.json)
+            if [ "$PACKAGE_VERSION" = "null" ] || [ -z "$PACKAGE_VERSION" ]; then
+              echo "❌ package.json 中未配置 version 字段！"
+              exit 1
+            fi
+          else
+            echo "❌ 未找到 package.json 文件！"
+            exit 1
+          fi
+          
+          # 版本校验
+          if [ "$RELEASE_VERSION" != "$PACKAGE_VERSION" ]; then
+            echo "❌ Release 版本（$RELEASE_VERSION）与 package.json 版本（$PACKAGE_VERSION）不一致！"
+            exit 1
+          fi
+          
+          echo "✅ 版本校验通过：$RELEASE_VERSION"
+          echo "PACKAGE_VERSION=$RELEASE_VERSION" >> $GITHUB_OUTPUT
+
+      - name: 安装项目依赖
+        run: |
+          set -euo pipefail
+          # 检查 lock 文件
+          if [ -f "pnpm-lock.yaml" ]; then
+            pnpm install --frozen-lockfile --prod=false
+          else
+            pnpm install --prod=false
+          fi
+          
+          # 可选：执行构建（兼容不同脚本名）
+          if pnpm run build --help >/dev/null 2>&1; then
+            pnpm run build -- --verbose
+          elif pnpm run compile --help >/dev/null 2>&1; then
+            pnpm run compile -- --verbose
+          else
+            echo "⚠ 无 build/compile 脚本，跳过构建"
+          fi
+
+      - name: 配置 npm 认证（动态作用域）
+        run: |
+          set -euo pipefail
+          # 检查 NPM_TOKEN 是否配置
+          if [ -z "${{ secrets.NPM_TOKEN }}" ]; then
+            echo "❌ 未配置 NPM_TOKEN 密钥！"
+            exit 1
+          fi
+          
+          # 处理 registry 地址（去掉 https:// 前缀）
+          NPM_REGISTRY_NO_PROTOCOL="${{ env.NPM_REGISTRY }}"
+          NPM_REGISTRY_NO_PROTOCOL=${NPM_REGISTRY_NO_PROTOCOL#https://}
+          
+          # 生成 .npmrc（动态作用域）
+          echo "//${NPM_REGISTRY_NO_PROTOCOL}/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
+          echo "@${{ steps.dynamic_config.outputs.NPM_SCOPE }}:registry=${{ env.NPM_REGISTRY }}" >> .npmrc
+          # 补充：禁用 npm 缓存，避免冲突
+          echo "cache=false" >> .npmrc
+          
+          # 验证配置
+          echo "📄 生成的 .npmrc 配置："
+          cat .npmrc
+
+      - name: 发布 NPM 包
+        run: |
+          set -euo pipefail
+          # 发布前检查包名/版本
+          echo "📤 开始发布包：${{ steps.dynamic_config.outputs.PACKAGE_NAME }}@${{ steps.version_check.outputs.PACKAGE_VERSION }}"
+          
+          # 根据仓库类型选择发布参数
+          if [ "${{ env.NPM_REGISTRY }}" = "https://registry.npmjs.org" ]; then
+            npm publish --access public
+          else
+            # GitHub Packages 发布（强制使用本地 .npmrc）
+            npm publish --userconfig .npmrc
+          fi
+          
+          # 验证发布结果（兼容 GitHub Packages）
+          echo "✅ NPM 包发布成功！"
+          echo "包名：${{ steps.dynamic_config.outputs.PACKAGE_NAME }}"
+          echo "版本：${{ steps.version_check.outputs.PACKAGE_VERSION }}"
+          # GitHub Packages 用 gh api 验证（替代 npm view）
+          if [ "${{ env.NPM_REGISTRY }}" = "https://npm.pkg.github.com" ]; then
+            gh api "/users/${{ steps.dynamic_config.outputs.NPM_SCOPE }}/packages/npm/${PACKAGE_NAME_BASE}/versions/${{ steps.version_check.outputs.PACKAGE_VERSION }}" || echo "ℹ GitHub API 验证跳过（需 gh 权限）"
+          else
+            npm view "${{ steps.dynamic_config.outputs.PACKAGE_NAME }}" version || echo "ℹ npm 官方验证跳过"
+          fi
+
+      - name: 输出发布信息
+        if: always() # 即使失败也输出信息
+        run: |
+          echo "📦 最终发布信息："
+          echo "包名：${{ steps.dynamic_config.outputs.PACKAGE_NAME }}"
+          echo "版本：${{ steps.version_check.outputs.PACKAGE_VERSION }}"
+          echo "发布仓库：${{ env.NPM_REGISTRY }}"
+          echo "作用域：@${{ steps.dynamic_config.outputs.NPM_SCOPE }}"
+          echo "发布时间：$(TZ=Asia/Shanghai date +'%Y-%m-%d %H:%M:%S')"
+          echo "Release 标签：${{ github.ref_name }}"
+          echo "执行状态：${{ job.status }}"

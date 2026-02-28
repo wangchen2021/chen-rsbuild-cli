@@ -129,9 +129,9 @@ jobs:
           
           # 可选：执行构建（兼容不同脚本名）
           if pnpm run build --help >/dev/null 2>&1; then
-            pnpm run build -- --verbose
+            pnpm run build
           elif pnpm run compile --help >/dev/null 2>&1; then
-            pnpm run compile -- --verbose
+            pnpm run compile
           else
             echo "⚠ 无 build/compile 脚本，跳过构建"
           fi

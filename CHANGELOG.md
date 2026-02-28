@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.0.5](https://github.com/wangchen2021/chen-rsbuild-cli/compare/v0.0.4...v0.0.5) (2026-02-28)
+
+### Features
+
+- 增加cicd日志输出 ([4fa0a6d](https://github.com/wangchen2021/chen-rsbuild-cli/commit/4fa0a6d9d9034460af9a96e7861e09c31657705a))
+
 ## [0.0.4](https://github.com/wangchen2021/chen-rsbuild-cli/compare/v0.0.3...v0.0.4) (2026-02-28)
 
 ### Features

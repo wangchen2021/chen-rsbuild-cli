@@ -72,7 +72,7 @@ jobs:
       - name: Publish to GitHub Packages
         run: |
           echo "发布到 GitHub Packages..."
-          pnpm publish --access public --tag latest --registry=https://npm.pkg.github.com
+          pnpm publish --access public --tag latest --registry=https://npm.pkg.github.com --no-git-checks
           echo "✅ 发布成功"
 
       # 9. 验证发布结果

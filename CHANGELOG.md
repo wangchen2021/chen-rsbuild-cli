@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.22](https://github.com/wangchen2021/chen-rsbuild-cli/compare/v1.0.21...v1.0.22) (2026-03-02)
+
+### Features
+
+- npm login ([f704d92](https://github.com/wangchen2021/chen-rsbuild-cli/commit/f704d92df23658227d51ef4452fa2cda06ea74d0))
+
 ## [1.0.21](https://github.com/wangchen2021/chen-rsbuild-cli/compare/v1.0.20...v1.0.21) (2026-03-02)
 
 ### Features

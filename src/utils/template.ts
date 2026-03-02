@@ -127,6 +127,15 @@ const cleanupUnselectedFeatures = async (
       await fs.remove(changelogFile);
     }
   }
+
+  // 如果不集成 GitHub Actions，删除相关目录
+  if (!features.gitAction) {
+    const githubDir = path.join(targetDir, '.github');
+
+    if (fs.existsSync(githubDir)) {
+      await fs.remove(githubDir);
+    }
+  }
 };
 
 /** 根据功能选择更新 package.json */

@@ -23,5 +23,6 @@ export interface TemplateOptions {
     storybook: boolean;
     reactRouter: boolean;
     releaseIt: boolean;
+    gitAction: boolean;
   };
 }

@@ -28,6 +28,7 @@ export const mergeUserOptions = (
       storybook: boolean;
       reactRouter: boolean;
       releaseIt: boolean;
+      gitAction: boolean;
     };
   },
 ): TemplateOptions => {
@@ -40,6 +41,7 @@ export const mergeUserOptions = (
       storybook: answers.features.storybook,
       reactRouter: answers.features.reactRouter,
       releaseIt: answers.features.releaseIt,
+      gitAction: answers.features.gitAction,
     },
   };
 };

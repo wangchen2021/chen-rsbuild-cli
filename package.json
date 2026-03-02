@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "install-all": "pnpm install && cd templates && pnpm install",
-    "build": "tsc",
+    "build": "tsup",
     "dev": "ts-node src/index.ts",
     "prepublishOnly": "pnpm run build",
     "dev:template": "cd templates && pnpm run dev",
@@ -79,6 +79,7 @@
     "@types/node": "^25.3.0",
     "commitizen": "^4.3.1",
     "cz-conventional-changelog": "^3.3.0",
+    "esbuild": "^0.27.3",
     "eslint": "^10.0.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
@@ -89,6 +90,7 @@
     "prettier": "^3.8.1",
     "release-it": "^19.2.4",
     "ts-node": "^10.9.2",
+    "tsup": "^8.5.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.56.1"
   },

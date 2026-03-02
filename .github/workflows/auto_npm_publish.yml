@@ -56,7 +56,7 @@ jobs:
           rm -f ~/.npmrc ~/.pnpmrc
           
           # 配置 PAT 认证
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GH_PACKAGES_TOKEN }}" > ~/.npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
           echo "@wangchen2021:registry=https://npm.pkg.github.com" >> ~/.npmrc
           
           # 验证配置和认证
@@ -68,7 +68,7 @@ jobs:
 
       - name: Publish to GitHub Packages
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN}}
         run: |
           echo "发布版本: $(node -p "require('./package.json').version")"
           pnpm publish \

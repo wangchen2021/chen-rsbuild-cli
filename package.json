@@ -8,7 +8,7 @@
     "install-all": "pnpm install && cd templates && pnpm install",
     "build": "tsup",
     "dev": "ts-node src/index.ts",
-    "prepublishOnly": "npm run build:verify",
+    "prepublishOnly": "npm run build",
     "dev:template": "cd templates && pnpm run dev",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "lint": "eslint .",
@@ -18,7 +18,7 @@
     "release:patch": "release-it patch",
     "release:minor": "release-it minor",
     "release:major": "release-it major",
-    "link:global": "npm run build:verify && npm link --global",
+    "link:global": "npm run build && npm link --global",
     "unlink:global": "npm unlink --global",
     "prepare": "husky"
   },

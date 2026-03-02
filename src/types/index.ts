@@ -22,5 +22,6 @@ export interface TemplateOptions {
     husky: boolean;
     storybook: boolean;
     reactRouter: boolean;
+    releaseIt: boolean;
   };
 }

@@ -23,7 +23,12 @@ export const validatePackageName = (input: string): boolean | string => {
 export const mergeUserOptions = (
   rawProjectName: string,
   answers: Omit<UserAnswers, 'features'> & {
-    features: { husky: boolean; storybook: boolean; reactRouter: boolean };
+    features: {
+      husky: boolean;
+      storybook: boolean;
+      reactRouter: boolean;
+      releaseIt: boolean;
+    };
   },
 ): TemplateOptions => {
   return {
@@ -34,6 +39,7 @@ export const mergeUserOptions = (
       husky: answers.features.husky,
       storybook: answers.features.storybook,
       reactRouter: answers.features.reactRouter,
+      releaseIt: answers.features.releaseIt,
     },
   };
 };

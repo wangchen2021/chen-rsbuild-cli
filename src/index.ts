@@ -67,6 +67,11 @@ program
               value: 'reactRouter',
               checked: true,
             },
+            {
+              name: 'Release-it (自动化版本发布)',
+              value: 'releaseIt',
+              checked: true,
+            },
           ],
         },
       ]);
@@ -76,6 +81,7 @@ program
         husky: answers.features.includes('husky'),
         storybook: answers.features.includes('storybook'),
         reactRouter: answers.features.includes('reactRouter'),
+        releaseIt: answers.features.includes('releaseIt'),
       };
 
       const options = mergeUserOptions(rawProjectName, {
@@ -113,6 +119,9 @@ program
       }
       if (options.features.reactRouter) {
         console.log(chalk.gray('  ✓ React Router (路由管理)'));
+      }
+      if (options.features.releaseIt) {
+        console.log(chalk.gray('  ✓ Release-it (自动化版本发布)'));
       }
       console.log('\n' + chalk.cyan('📝 下一步操作：'));
       console.log(chalk.gray(`  cd ${options.projectName}`));

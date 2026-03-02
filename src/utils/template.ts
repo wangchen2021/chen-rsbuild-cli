@@ -114,6 +114,19 @@ const cleanupUnselectedFeatures = async (
       await fs.remove(routerDir);
     }
   }
+
+  // 如果不集成 Release-it，删除相关配置文件
+  if (!features.releaseIt) {
+    const releaseItConfig = path.join(targetDir, '.release-it.json');
+    const changelogFile = path.join(targetDir, 'CHANGELOG.md');
+
+    if (fs.existsSync(releaseItConfig)) {
+      await fs.remove(releaseItConfig);
+    }
+    if (fs.existsSync(changelogFile)) {
+      await fs.remove(changelogFile);
+    }
+  }
 };
 
 /** 根据功能选择更新 package.json */
@@ -206,6 +219,33 @@ const updatePackageJson = async (targetDir: string, options: TemplateOptions): P
     reactRouterDeps.forEach((dep) => {
       if (packageJson.dependencies[dep]) {
         delete packageJson.dependencies[dep];
+      }
+    });
+  }
+
+  // 根据功能选择更新 scripts（Release-it）
+  if (!options.features.releaseIt) {
+    // 安全删除 release-it 相关的 scripts
+    if (packageJson.scripts) {
+      delete packageJson.scripts.release;
+      delete packageJson.scripts['release:patch'];
+      delete packageJson.scripts['release:minor'];
+      delete packageJson.scripts['release:major'];
+    }
+  }
+
+  // 根据功能选择更新 devDependencies（Release-it）
+  if (!options.features.releaseIt && packageJson.devDependencies) {
+    // release-it 相关的依赖
+    const releaseItDeps = [
+      '@release-it/bumper',
+      '@release-it/conventional-changelog',
+      'release-it',
+      'semver',
+    ];
+    releaseItDeps.forEach((dep) => {
+      if (packageJson.devDependencies[dep]) {
+        delete packageJson.devDependencies[dep];
       }
     });
   }

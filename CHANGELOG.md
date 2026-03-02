@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.31](https://github.com/wangchen2021/chen-rsbuild-cli/compare/v1.0.30...v1.0.31) (2026-03-02)
+
+### Features
+
+- 增加成功展示 ([c9acffc](https://github.com/wangchen2021/chen-rsbuild-cli/commit/c9acffce5dcabba63960dec2aa68ec519d3e8955))
+
 ## [1.0.30](https://github.com/wangchen2021/chen-rsbuild-cli/compare/v1.0.29...v1.0.30) (2026-03-02)
 
 ### Features

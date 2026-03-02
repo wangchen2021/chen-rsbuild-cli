@@ -1,14 +1,15 @@
 {
   "name": "@wangchen2021/chen-rsbuild-cli",
-  "version": "1.0.18",
+  "version": "1.0.17",
   "description": "React+RSBuild+TS Chen CLI",
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
     "install-all": "pnpm install && cd templates && pnpm install",
     "build": "tsup",
+    "build:verify": "npm run build && node scripts/verify-build.js",
     "dev": "ts-node src/index.ts",
-    "prepublishOnly": "pnpm run build",
+    "prepublishOnly": "npm run build:verify",
     "dev:template": "cd templates && pnpm run dev",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "lint": "eslint .",
@@ -18,8 +19,8 @@
     "release:patch": "release-it patch",
     "release:minor": "release-it minor",
     "release:major": "release-it major",
-    "link:global": "pnpm run build && pnpm link --global",
-    "unlink:global": "pnpm unlink --global",
+    "link:global": "npm run build:verify && npm link --global",
+    "unlink:global": "npm unlink --global",
     "prepare": "husky"
   },
   "bin": {
@@ -89,13 +90,14 @@
     "lint-staged": "^16.2.7",
     "prettier": "^3.8.1",
     "release-it": "^19.2.4",
+    "terser": "^5.46.0",
     "ts-node": "^10.9.2",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.56.1"
   },
   "engines": {
-    "node": "24.x",
+    "node": ">=12.0.0",
     "pnpm": ">=9.0.0"
   }
 }

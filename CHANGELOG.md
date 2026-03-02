@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.29](https://github.com/wangchen2021/chen-rsbuild-cli/compare/v1.0.28...v1.0.29) (2026-03-02)
+
+### Features
+
+- template ([9db764c](https://github.com/wangchen2021/chen-rsbuild-cli/commit/9db764c4335eccb87c7bb1ee965dec7a06abcd06))
+
 ## [1.0.28](https://github.com/wangchen2021/chen-rsbuild-cli/compare/v1.0.27...v1.0.28) (2026-03-02)
 
 ### Features

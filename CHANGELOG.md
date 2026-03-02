@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.0.15](https://github.com/wangchen2021/chen-rsbuild-cli/compare/v1.0.14...v1.0.15) (2026-03-02)
+
 ## [1.0.14](https://github.com/wangchen2021/chen-rsbuild-cli/compare/v1.0.13...v1.0.14) (2026-03-02)
 
 ### Features

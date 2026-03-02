@@ -37,7 +37,7 @@ jobs:
         with:
           node-version: 24.11.0
           # 禁用自动注入的 registry 配置
-          registry-url: ""
+          registry-url: "https://registry.npmmirror.com/"
 
       # 4. 安装依赖
       - name: Install dependencies

@@ -1,7 +1,6 @@
 import { defineConfig, type Options } from 'tsup';
-import { dependencies, devDependencies } from './package.json';
+import { dependencies, devDependencies, version } from './package.json';
 import builtinModules from 'module';
-import packageJson from './package.json';
 
 /**
  * 企业级 CLI 构建配置
@@ -25,8 +24,7 @@ export default defineConfig((options) => {
     // 输出格式：只使用 CJS 确保最大兼容性
     format: ['cjs'],
 
-    // 目标环境：Node.js 12+（企业级兼容性）
-    target: 'node12',
+    target: 'node24',
 
     // 输出目录
     outDir: 'dist',
@@ -73,7 +71,7 @@ export default defineConfig((options) => {
     esbuildOptions: (opts) => {
       opts.banner = {
         js: `
-          // CLI 版本：${packageJson.version}
+          // CLI 版本：${version}
           // 构建时间：${new Date().toISOString()}
           "use strict";
         `.trim(),

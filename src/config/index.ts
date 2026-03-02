@@ -6,7 +6,7 @@ import { getCliRootDir } from '../utils/path';
 export const CLI_CONFIG: CliConfig = {
   name: 'chen-rsbuild-cli',
   version: '1.0.0',
-  localTemplateDir: `${getCliRootDir()}/templates`, // 动态拼接模板路径
-  remoteTemplateRepo: 'git@github.com:your-org/react-rsbuild-template.git', // 替换为你的远程仓库
+  localTemplateDir: `${getCliRootDir()}/templates`,
+  remoteTemplateRepo: 'https://github.com/wangchen2021/chen-rsbuild-cli.git',
   templateVersion: 'v1.0.0',
 };

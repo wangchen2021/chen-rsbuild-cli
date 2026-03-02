@@ -5,9 +5,11 @@
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
+    "install-all": "pnpm install && cd templates && pnpm install",
     "build": "tsc",
     "dev": "ts-node src/index.ts",
     "prepublishOnly": "pnpm run build",
+    "dev:template": "cd templates && pnpm run dev",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "lint": "eslint .",
     "git:commit": "git add . && npx cz",

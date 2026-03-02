@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.19](https://github.com/wangchen2021/chen-rsbuild-cli/compare/v1.0.18...v1.0.19) (2026-03-02)
+
+### Features
+
+- config change ([7373274](https://github.com/wangchen2021/chen-rsbuild-cli/commit/73732749527b70c5fdf35213773a41e06b661f7a))
+
 ## [1.0.18](https://github.com/wangchen2021/chen-rsbuild-cli/compare/v1.0.17...v1.0.18) (2026-03-02)
 
 ### Features

@@ -1,6 +1,6 @@
 {
   "name": "chen-rsbuild-cli-app",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "author": "<%= author %>",
   "description": "<%= projectDesc %>",
   "private": true,

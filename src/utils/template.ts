@@ -219,26 +219,9 @@ export const renderTemplate = async (
   targetDir: string,
   options: TemplateOptions,
 ): Promise<void> => {
-  // 复制模板文件到目标目录，排除 node_modules 和其他不需要的目录
-  await fs.copy(templateDir, targetDir, {
-    filter: (src) => {
-      // 排除 node_modules 目录
-      if (src.includes('node_modules')) {
-        return false;
-      }
-      // 排除其他可能不需要的目录和文件
-      if (
-        src.includes('.git') ||
-        src.includes('.DS_Store') ||
-        src.includes('Thumbs.db') ||
-        src.includes('.idea') ||
-        src.includes('.vscode')
-      ) {
-        return false;
-      }
-      return true;
-    },
-  });
+  // 复制模板文件到目标目录
+  // 注意：这里使用简单复制，过滤逻辑可能有问题
+  await fs.copy(templateDir, targetDir);
 
   // 根据功能选择清理文件
   await cleanupUnselectedFeatures(targetDir, options.features);

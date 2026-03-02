@@ -7,7 +7,6 @@
   "scripts": {
     "install-all": "pnpm install && cd templates && pnpm install",
     "build": "tsup",
-    "build:verify": "npm run build && node scripts/verify-build.js",
     "dev": "ts-node src/index.ts",
     "prepublishOnly": "npm run build:verify",
     "dev:template": "cd templates && pnpm run dev",

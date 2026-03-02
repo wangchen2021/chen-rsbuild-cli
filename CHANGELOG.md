@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.14](https://github.com/wangchen2021/chen-rsbuild-cli/compare/v1.0.13...v1.0.14) (2026-03-02)
+
+### Features
+
+- 模块可选 ([522868a](https://github.com/wangchen2021/chen-rsbuild-cli/commit/522868ac4445afab017f73b41ad6269246d8123f))
+
 ## [1.0.13](https://github.com/wangchen2021/chen-rsbuild-cli/compare/v1.0.12...v1.0.13) (2026-03-02)
 
 ### Features

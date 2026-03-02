@@ -1,44 +1,36 @@
-/** 企业级：包名校验/格式化工具 */
-import { UserAnswers } from '../types';
+/** 企业级：包名处理工具 */
+import { UserAnswers, TemplateOptions } from '../types';
 
-// npm 官方包名正则
-const NPM_NAME_REGEX =
-  /^(?:(?:@(?:[a-z0-9-*~][a-z0-9-*._~]*)?\/[a-z0-9-._~])|[a-z0-9-~])[a-z0-9-._~]*$/;
-
-/** 格式化包名（企业级规则） */
+/** 格式化包名（符合 npm 规范） */
 export const formatPackageName = (rawName: string): string => {
-  let name = rawName
+  return rawName
     .toLowerCase()
-    .replace(/[\s\u4e00-\u9fa5!@#$%^&*()+=<>?/\\|{}[\]`~:;"]+/g, '-') // 替换非法字符
-    .replace(/-+/g, '-') // 去重连字符
-    .replace(/^[-./]+|[-./]+$/g, ''); // 去首尾特殊字符
-
-  // 兜底：空名称/纯特殊字符 → 默认名
-  if (!name) {
-    name = 'react-rsbuild-app';
-  }
-
-  return name;
+    .replace(/[^a-z0-9-]/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .replace(/-+/g, '-');
 };
 
-/** 校验包名合法性 */
+/** 校验包名（企业级：实时反馈） */
 export const validatePackageName = (input: string): boolean | string => {
-  const formatted = formatPackageName(input);
-  if (NPM_NAME_REGEX.test(formatted)) {
-    return true;
+  if (!input) return '包名不能为空';
+  if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]$/.test(input)) {
+    return '包名必须符合 npm 规范：小写字母、数字、连字符，不能以连字符开头或结尾';
   }
-  return '包名不符合npm规范！仅允许小写字母、数字、-/_/./~，且不能有空格/中文';
+  return true;
 };
 
-/** 整合用户输入（企业级：参数校验） */
+/** 整合用户选项（企业级：数据清洗） */
 export const mergeUserOptions = (
   rawProjectName: string,
-  answers: UserAnswers,
-): { projectName: string; author: string; projectDesc: string } => {
-  const projectName = formatPackageName(answers.packageName || rawProjectName);
+  answers: Omit<UserAnswers, 'features'> & { features: { husky: boolean; storybook: boolean } },
+): TemplateOptions => {
   return {
-    projectName,
+    projectName: rawProjectName,
     author: answers.author || '',
     projectDesc: answers.projectDesc || '基于 React+RSBuild+TS 的企业级项目',
+    features: {
+      husky: answers.features.husky,
+      storybook: answers.features.storybook,
+    },
   };
 };

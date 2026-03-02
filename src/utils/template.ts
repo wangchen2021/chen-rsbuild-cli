@@ -40,6 +40,106 @@ export const getTemplateDir = async (): Promise<string> => {
   }
 };
 
+/** 根据功能选择清理不需要的文件 */
+const cleanupUnselectedFeatures = async (
+  targetDir: string,
+  features: TemplateOptions['features'],
+): Promise<void> => {
+  // 如果不集成 Husky，删除相关文件和配置
+  // 注意：commitlint 和 lint-staged 依赖于 husky，所以一起删除
+  if (!features.husky) {
+    const huskyDir = path.join(targetDir, '.husky');
+    const commitlintConfig = path.join(targetDir, 'commitlint.config.ts');
+
+    if (fs.existsSync(huskyDir)) {
+      await fs.remove(huskyDir);
+    }
+    if (fs.existsSync(commitlintConfig)) {
+      await fs.remove(commitlintConfig);
+    }
+  }
+
+  // 如果不集成 Storybook，删除相关文件和配置
+  if (!features.storybook) {
+    const storybookDir = path.join(targetDir, '.storybook');
+
+    if (fs.existsSync(storybookDir)) {
+      await fs.remove(storybookDir);
+    }
+  }
+};
+
+/** 根据功能选择更新 package.json */
+const updatePackageJson = async (targetDir: string, options: TemplateOptions): Promise<void> => {
+  const packageJsonPath = path.join(targetDir, 'package.json');
+  if (!fs.existsSync(packageJsonPath)) return;
+
+  const packageJson = await fs.readJSON(packageJsonPath);
+
+  // 更新核心字段
+  packageJson.name = options.projectName;
+  packageJson.author = options.author;
+  packageJson.description = options.projectDesc;
+
+  // 根据功能选择更新 scripts
+  if (!options.features.husky) {
+    // 删除 husky 相关的 scripts
+    delete packageJson.scripts.prepare;
+    delete packageJson.scripts['git:commit'];
+
+    // 删除 lint-staged 配置
+    delete packageJson['lint-staged'];
+
+    // 删除 commitizen 配置
+    if (packageJson.config && packageJson.config.commitizen) {
+      delete packageJson.config.commitizen;
+    }
+  }
+
+  if (!options.features.storybook) {
+    delete packageJson.scripts.storybook;
+    delete packageJson.scripts['build-storybook'];
+  }
+
+  // 根据功能选择更新 devDependencies
+  if (!options.features.husky) {
+    // husky 相关的依赖（包括 commitlint 和 lint-staged）
+    const huskyDeps = [
+      '@commitlint/cli',
+      '@commitlint/config-angular',
+      '@commitlint/format',
+      '@commitlint/types',
+      'commitizen',
+      'cz-conventional-changelog',
+      'husky',
+      'lint-staged',
+    ];
+    huskyDeps.forEach((dep) => {
+      delete packageJson.devDependencies[dep];
+    });
+  }
+
+  if (!options.features.storybook) {
+    const storybookDeps = [
+      '@storybook/addon-a11y',
+      '@storybook/addon-docs',
+      '@storybook/addon-links',
+      '@storybook/addon-onboarding',
+      '@storybook/react',
+      '@storybook/react-docgen-typescript-plugin',
+      'eslint-plugin-storybook',
+      'puppeteer',
+      'storybook',
+      'storybook-react-rsbuild',
+    ];
+    storybookDeps.forEach((dep) => {
+      delete packageJson.devDependencies[dep];
+    });
+  }
+
+  await fs.writeJSON(packageJsonPath, packageJson, { spaces: 2 });
+};
+
 /** 渲染模板变量（企业级：兼容所有模板文件） */
 export const renderTemplate = async (
   templateDir: string,
@@ -49,16 +149,11 @@ export const renderTemplate = async (
   // 复制模板文件到目标目录
   await fs.copy(templateDir, targetDir);
 
-  // 渲染 package.json（核心）
-  const packageJsonPath = path.join(targetDir, 'package.json');
-  if (fs.existsSync(packageJsonPath)) {
-    const packageJson = await fs.readJSON(packageJsonPath);
-    // 覆盖核心字段（企业级：避免 ejs 渲染遗漏）
-    packageJson.name = options.projectName;
-    packageJson.author = options.author;
-    packageJson.description = options.projectDesc;
-    await fs.writeJSON(packageJsonPath, packageJson, { spaces: 2 });
-  }
+  // 根据功能选择清理文件
+  await cleanupUnselectedFeatures(targetDir, options.features);
+
+  // 更新 package.json
+  await updatePackageJson(targetDir, options);
 
   // 企业级扩展：渲染其他模板文件（如 .env、README.md）
   const readmePath = path.join(targetDir, 'README.md');

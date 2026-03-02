@@ -47,10 +47,36 @@ program
           default: defaultPackageName,
           validate: validatePackageName, // 实时校验
         },
+        {
+          type: 'checkbox',
+          name: 'features',
+          message: '请选择要集成的功能:',
+          choices: [
+            {
+              name: 'Husky (Git hooks 管理)',
+              value: 'husky',
+              checked: true,
+            },
+            {
+              name: 'Storybook (组件文档 + 可视化测试)',
+              value: 'storybook',
+              checked: true,
+            },
+          ],
+        },
       ]);
 
       // 2. 整合并格式化用户输入
-      const options = mergeUserOptions(rawProjectName, answers);
+      const selectedFeatures = {
+        husky: answers.features.husky,
+        storybook: answers.features.storybook,
+      };
+
+      const options = mergeUserOptions(rawProjectName, {
+        ...answers,
+        features: selectedFeatures,
+      });
+
       const targetDir = path.resolve(process.cwd(), options.projectName);
 
       // 3. 检查目标目录是否存在（企业级：容错提示）
@@ -72,6 +98,15 @@ program
 
       // 7. 成功提示（企业级：清晰的下一步指引）
       spinner.succeed(chalk.green(`✅ 项目 ${options.projectName} 创建成功！`));
+      console.log('\n' + chalk.cyan('📝 已集成的功能：'));
+      if (options.features.husky) {
+        console.log(chalk.gray('  ✓ Husky (Git hooks 管理)'));
+        console.log(chalk.gray('    ├─ commitlint (提交消息规范检查)'));
+        console.log(chalk.gray('    └─ lint-staged (暂存文件检查)'));
+      }
+      if (options.features.storybook) {
+        console.log(chalk.gray('  ✓ Storybook (组件文档 + 可视化测试)'));
+      }
       console.log('\n' + chalk.cyan('📝 下一步操作：'));
       console.log(chalk.gray(`  cd ${options.projectName}`));
       console.log(chalk.gray('  pnpm install'));

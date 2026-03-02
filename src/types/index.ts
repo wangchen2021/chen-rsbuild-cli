@@ -3,6 +3,10 @@ export interface UserAnswers {
   projectDesc: string;
   author: string;
   packageName?: string;
+  features: {
+    husky: boolean;
+    storybook: boolean;
+  };
 }
 
 export interface CliConfig {
@@ -17,4 +21,8 @@ export interface TemplateOptions {
   projectName: string;
   author: string;
   projectDesc: string;
+  features: {
+    husky: boolean;
+    storybook: boolean;
+  };
 }

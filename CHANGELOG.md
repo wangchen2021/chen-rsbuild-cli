@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.28](https://github.com/wangchen2021/chen-rsbuild-cli/compare/v1.0.27...v1.0.28) (2026-03-02)
+
+### Features
+
+- react router独立选择 ([cc1c726](https://github.com/wangchen2021/chen-rsbuild-cli/commit/cc1c72603b88d4b48ab8218c261d64fc0c2a75b9))
+
 ## [1.0.27](https://github.com/wangchen2021/chen-rsbuild-cli/compare/v1.0.26...v1.0.27) (2026-03-02)
 
 ### Features

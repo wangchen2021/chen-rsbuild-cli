@@ -53,7 +53,7 @@ program
           message: '请选择要集成的功能:',
           choices: [
             {
-              name: 'Husky (Git hooks 管理)',
+              name: 'Husky (Git hooks 管理 + commitlint + lint-staged)',
               value: 'husky',
               checked: true,
             },
@@ -62,14 +62,20 @@ program
               value: 'storybook',
               checked: true,
             },
+            {
+              name: 'React Router (路由管理)',
+              value: 'reactRouter',
+              checked: true,
+            },
           ],
         },
       ]);
 
       // 2. 整合并格式化用户输入
       const selectedFeatures = {
-        husky: answers.features.husky,
-        storybook: answers.features.storybook,
+        husky: answers.features.includes('husky'),
+        storybook: answers.features.includes('storybook'),
+        reactRouter: answers.features.includes('reactRouter'),
       };
 
       const options = mergeUserOptions(rawProjectName, {
@@ -100,12 +106,13 @@ program
       spinner.succeed(chalk.green(`✅ 项目 ${options.projectName} 创建成功！`));
       console.log('\n' + chalk.cyan('📝 已集成的功能：'));
       if (options.features.husky) {
-        console.log(chalk.gray('  ✓ Husky (Git hooks 管理)'));
-        console.log(chalk.gray('    ├─ commitlint (提交消息规范检查)'));
-        console.log(chalk.gray('    └─ lint-staged (暂存文件检查)'));
+        console.log(chalk.gray('  ✓ Husky (Git hooks 管理 + commitlint + lint-staged)'));
       }
       if (options.features.storybook) {
         console.log(chalk.gray('  ✓ Storybook (组件文档 + 可视化测试)'));
+      }
+      if (options.features.reactRouter) {
+        console.log(chalk.gray('  ✓ React Router (路由管理)'));
       }
       console.log('\n' + chalk.cyan('📝 下一步操作：'));
       console.log(chalk.gray(`  cd ${options.projectName}`));

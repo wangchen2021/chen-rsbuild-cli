@@ -66,6 +66,53 @@ const cleanupUnselectedFeatures = async (
     if (fs.existsSync(storybookDir)) {
       await fs.remove(storybookDir);
     }
+
+    // 递归查找并删除所有 .stories 和 .story 文件
+    const deleteStoryFiles = async (dir: string): Promise<void> => {
+      try {
+        const items = await fs.readdir(dir, { withFileTypes: true });
+
+        for (const item of items) {
+          const fullPath = path.join(dir, item.name);
+
+          if (item.isDirectory()) {
+            // 递归遍历子目录
+            await deleteStoryFiles(fullPath);
+          } else if (item.isFile()) {
+            // 检查是否是 .stories 或 .story 文件
+            if (
+              item.name.endsWith('.stories.ts') ||
+              item.name.endsWith('.stories.tsx') ||
+              item.name.endsWith('.stories.js') ||
+              item.name.endsWith('.stories.jsx') ||
+              item.name.endsWith('.story.ts') ||
+              item.name.endsWith('.story.tsx') ||
+              item.name.endsWith('.story.js') ||
+              item.name.endsWith('.story.jsx')
+            ) {
+              await fs.remove(fullPath);
+            }
+          }
+        }
+      } catch (error) {
+        // 静默处理错误，不影响主要功能
+      }
+    };
+
+    // 从 src 目录开始查找
+    const srcDir = path.join(targetDir, 'src');
+    if (fs.existsSync(srcDir)) {
+      await deleteStoryFiles(srcDir);
+    }
+  }
+
+  // 如果不集成 React Router，删除相关目录
+  if (!features.reactRouter) {
+    const routerDir = path.join(targetDir, 'src/router');
+
+    if (fs.existsSync(routerDir)) {
+      await fs.remove(routerDir);
+    }
   }
 };
 
@@ -83,26 +130,37 @@ const updatePackageJson = async (targetDir: string, options: TemplateOptions): P
 
   // 根据功能选择更新 scripts
   if (!options.features.husky) {
-    // 删除 husky 相关的 scripts
-    delete packageJson.scripts.prepare;
-    delete packageJson.scripts['git:commit'];
+    // 安全删除 husky 相关的 scripts
+    if (packageJson.scripts) {
+      delete packageJson.scripts.prepare;
+      delete packageJson.scripts['git:commit'];
+    }
 
-    // 删除 lint-staged 配置
-    delete packageJson['lint-staged'];
+    // 安全删除 lint-staged 配置
+    if (packageJson['lint-staged']) {
+      delete packageJson['lint-staged'];
+    }
 
-    // 删除 commitizen 配置
+    // 安全删除 commitizen 配置
     if (packageJson.config && packageJson.config.commitizen) {
       delete packageJson.config.commitizen;
+      // 如果 config 对象为空，删除整个 config
+      if (Object.keys(packageJson.config).length === 0) {
+        delete packageJson.config;
+      }
     }
   }
 
   if (!options.features.storybook) {
-    delete packageJson.scripts.storybook;
-    delete packageJson.scripts['build-storybook'];
+    // 安全删除 storybook 相关的 scripts
+    if (packageJson.scripts) {
+      delete packageJson.scripts.storybook;
+      delete packageJson.scripts['build-storybook'];
+    }
   }
 
   // 根据功能选择更新 devDependencies
-  if (!options.features.husky) {
+  if (!options.features.husky && packageJson.devDependencies) {
     // husky 相关的依赖（包括 commitlint 和 lint-staged）
     const huskyDeps = [
       '@commitlint/cli',
@@ -115,11 +173,13 @@ const updatePackageJson = async (targetDir: string, options: TemplateOptions): P
       'lint-staged',
     ];
     huskyDeps.forEach((dep) => {
-      delete packageJson.devDependencies[dep];
+      if (packageJson.devDependencies[dep]) {
+        delete packageJson.devDependencies[dep];
+      }
     });
   }
 
-  if (!options.features.storybook) {
+  if (!options.features.storybook && packageJson.devDependencies) {
     const storybookDeps = [
       '@storybook/addon-a11y',
       '@storybook/addon-docs',
@@ -133,7 +193,20 @@ const updatePackageJson = async (targetDir: string, options: TemplateOptions): P
       'storybook-react-rsbuild',
     ];
     storybookDeps.forEach((dep) => {
-      delete packageJson.devDependencies[dep];
+      if (packageJson.devDependencies[dep]) {
+        delete packageJson.devDependencies[dep];
+      }
+    });
+  }
+
+  // 根据功能选择更新 dependencies
+  if (!options.features.reactRouter && packageJson.dependencies) {
+    // React Router 相关的依赖
+    const reactRouterDeps = ['react-router-dom'];
+    reactRouterDeps.forEach((dep) => {
+      if (packageJson.dependencies[dep]) {
+        delete packageJson.dependencies[dep];
+      }
     });
   }
 
@@ -146,8 +219,26 @@ export const renderTemplate = async (
   targetDir: string,
   options: TemplateOptions,
 ): Promise<void> => {
-  // 复制模板文件到目标目录
-  await fs.copy(templateDir, targetDir);
+  // 复制模板文件到目标目录，排除 node_modules 和其他不需要的目录
+  await fs.copy(templateDir, targetDir, {
+    filter: (src) => {
+      // 排除 node_modules 目录
+      if (src.includes('node_modules')) {
+        return false;
+      }
+      // 排除其他可能不需要的目录和文件
+      if (
+        src.includes('.git') ||
+        src.includes('.DS_Store') ||
+        src.includes('Thumbs.db') ||
+        src.includes('.idea') ||
+        src.includes('.vscode')
+      ) {
+        return false;
+      }
+      return true;
+    },
+  });
 
   // 根据功能选择清理文件
   await cleanupUnselectedFeatures(targetDir, options.features);

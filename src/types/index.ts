@@ -3,10 +3,7 @@ export interface UserAnswers {
   projectDesc: string;
   author: string;
   packageName?: string;
-  features: {
-    husky: boolean;
-    storybook: boolean;
-  };
+  features: string[]; // 用户选择的特性列表
 }
 
 export interface CliConfig {
@@ -24,5 +21,6 @@ export interface TemplateOptions {
   features: {
     husky: boolean;
     storybook: boolean;
+    reactRouter: boolean;
   };
 }

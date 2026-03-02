@@ -1,6 +1,7 @@
 import { defineConfig, type Options } from 'tsup';
 import { dependencies, devDependencies, version } from './package.json';
 import builtinModules from 'module';
+import dayjs from 'dayjs';
 
 /**
  * 企业级 CLI 构建配置
@@ -72,7 +73,7 @@ export default defineConfig((options) => {
       opts.banner = {
         js: `
           // CLI 版本：${version}
-          // 构建时间：${new Date().toISOString()}
+          // 构建时间：${dayjs().format('YYYY-MM-DD HH:mm:ss')}
           "use strict";
         `.trim(),
       };

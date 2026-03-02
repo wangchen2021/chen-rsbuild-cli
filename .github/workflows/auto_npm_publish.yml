@@ -52,7 +52,7 @@ jobs:
         run: |
           echo "验证构建输出..."
           ls -la dist/
-          [ -f "dist/index.js" ] || (echo "构建失败: dist/index.js 不存在" && exit 1)
+          [ -f "dist/index.js" ] || [ -f "dist/index.cjs" ] || (echo "构建失败: dist/index.js 不存在" && exit 1)
           echo "✅ 构建验证通过"
 
       # 7. 配置 GitHub Packages 认证

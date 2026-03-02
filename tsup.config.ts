@@ -13,8 +13,6 @@ export default defineConfig({
   clean: true,
   sourcemap: true, // 生产环境可关闭，调试时开启
   minify: true, // 压缩代码，减小体积
-  // 自动注入 Node.js 内置模块 shim（避免打包后找不到 fs/path 等）
-  shims: true,
   //   // 可选：替换源码中的环境变量
   //   define: {
   //     'process.env.CLI_VERSION': '"1.0.0"',

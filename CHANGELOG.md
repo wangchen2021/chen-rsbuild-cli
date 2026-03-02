@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.18](https://github.com/wangchen2021/chen-rsbuild-cli/compare/v1.0.17...v1.0.18) (2026-03-02)
+
+### Features
+
+- tsup config ([2689850](https://github.com/wangchen2021/chen-rsbuild-cli/commit/26898505b0b8fb3c61e9984b0b15804050870e6f))
+
 ## [1.0.17](https://github.com/wangchen2021/chen-rsbuild-cli/compare/v1.0.16...v1.0.17) (2026-03-02)
 
 ### Features

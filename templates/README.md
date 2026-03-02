@@ -181,13 +181,6 @@ pnpm run storybook
 
 访问 [http://localhost:6006](http://localhost:6006) 查看和开发组件。
 
-### API 文档
-
-API 文档使用 OpenAPI/Swagger 生成。启动开发服务器后，访问：
-
-- API 文档: [http://localhost:3000/api-docs](http://localhost:3000/api-docs)
-- Swagger UI: [http://localhost:3000/swagger](http://localhost:3000/swagger)
-
 ## 🤝 贡献
 
 我们欢迎贡献！请查看 [贡献指南](CONTRIBUTING.md) 了解详情。

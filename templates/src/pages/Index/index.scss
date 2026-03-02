@@ -1,0 +1,28 @@
+/* Index Page Styles */
+.index-container {
+  position: relative;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
+  overflow: hidden;
+}
+
+.index-content {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .index-content {
+    padding: 1rem 0.5rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .index-content {
+    padding: 3rem 2rem;
+  }
+}

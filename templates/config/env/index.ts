@@ -10,8 +10,8 @@ const getGitInfo = () => {
     commitHash = git.short() || 'unknown';
     imageTag = git.tag() || 'unknown';
     branch = git.branch() || 'unknown';
-  } catch (error) {
-    console.warn('[Git Info] 读取Git仓库信息失败（可能未初始化Git）：', error);
+  } catch {
+    console.warn('[Git Info] 读取Git仓库信息失败（可能未初始化Git）');
   }
 
   return { commitHash, imageTag, branch };

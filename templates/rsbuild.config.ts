@@ -70,7 +70,15 @@ export default defineConfig({
           localIdentName: string,
           localName: string,
         ) => {
-          const staticClassPath = ['node_modules', 'ant.design.less', 'global.less', 'app.css'];
+          const staticClassPath = [
+            'node_modules',
+            'ant.design.less',
+            'global.less',
+            'global.scss',
+            'app.css',
+            'app.scss',
+            'normalize.css',
+          ];
           const isStaticClass = staticClassPath.some((i) => context.resourcePath.includes(i));
           if (isStaticClass) {
             return localName;

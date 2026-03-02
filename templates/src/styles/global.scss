@@ -1,0 +1,70 @@
+/* src/styles/global.css */
+/* 1. 基础盒模型重置（企业级必配） */
+*,
+*::before,
+*::after {
+  box-sizing: border-box; /* 统一盒模型，避免宽度计算混乱 */
+  margin: 0;
+  padding: 0;
+}
+
+/* 2. 消除点击高亮（移动端必备） */
+html,
+body {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 3. 统一字体 + 消除默认行高差异 */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #333; /* 企业级常用基础文本色 */
+  background-color: #fff;
+}
+
+/* 4. 列表样式重置 */
+ul,
+ol {
+  list-style: none;
+}
+
+/* 5. 链接样式重置（企业级常用） */
+a {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+a:hover,
+a:focus {
+  text-decoration: none;
+  outline: none; /* 消除焦点轮廓（可自定义焦点样式） */
+}
+
+/* 6. 按钮/输入框重置（消除默认样式） */
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  border: none;
+  outline: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* 7. 图片自适应（企业级必配） */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block; /* 消除图片底部默认空白 */
+}
+
+/* 8. 清除浮动（兼容老场景） */
+.clearfix::after {
+  content: '';
+  display: table;
+  clear: both;
+}

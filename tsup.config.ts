@@ -22,53 +22,52 @@ export default defineConfig((options) => {
       index: 'src/index.ts',
     },
 
-    // 输出格式：CJS（最大兼容性）
+    // 输出格式：只使用 CJS 确保最大兼容性
     format: ['cjs'],
 
-    // 目标环境：Node24+（LTS 版本）
-    target: 'node24',
+    // 目标环境：Node.js 12+（企业级兼容性）
+    target: 'node12',
 
     // 输出目录
     outDir: 'dist',
 
-    // 清理输出目录（生产模式）
+    // 清理输出目录
     clean: !options.watch,
 
-    // 源码映射：开发内联，生产隐藏
-    sourcemap: options.watch ? 'inline' : undefined,
+    // 源码映射：关闭以减小文件大小
+    sourcemap: false,
 
-    // 压缩：生产模式用 terser（兼容 CJS），开发模式关闭
-    minify: options.watch ? false : 'terser',
+    // 压缩：关闭以避免兼容性问题
+    minify: false,
 
-    // 生成类型声明（企业级可维护性）
-    dts: {
-      entry: 'src/index.ts',
-      resolve: true,
-    },
-
+    // 生成类型声明
+    dts: false,
     // 外部依赖（不打包，避免兼容性问题）
     external: externalDependencies,
-    noExternal: [],
-
     // 平台：Node.js
     platform: 'node',
 
-    // 禁用代码分割（CJS 无需）
+    // 禁用代码分割
     splitting: false,
 
     // 保留函数/类名（调试友好）
     keepNames: true,
 
-    // 输出后缀：CJS 用 .cjs 避免解析冲突
-    outExtension: (ctx) => ({
-      js: ctx.format === 'cjs' ? '.cjs' : '.js',
+    // 输出文件扩展名
+    outExtension: () => ({
+      js: '.js',
     }),
 
-    // Tree-shaking 增强
-    treeshake: {
-      moduleSideEffects: false,
-      propertyReadSideEffects: false,
-    },
+    // 不进行 tree shaking（保持代码完整性）
+    treeshake: false,
+
+    // 不打包 node_modules
+    noExternal: [],
+
+    // 不进行代码优化
+    minifyWhitespace: false,
+    minifyIdentifiers: false,
+    minifySyntax: false,
 
     // ESBuild 自定义配置
     esbuildOptions: (opts) => {

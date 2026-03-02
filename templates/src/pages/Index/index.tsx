@@ -60,7 +60,7 @@ const IndexPage = () => {
       <div className={styles['index-content']}>
         {/* 科技感标题 */}
         <TechHeader
-          title="RSBUILD"
+          title="CHEN RSBUILD"
           subtitle="ENTERPRISE"
           tagline="Next-Generation React Development Platform"
         />

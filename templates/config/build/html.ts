@@ -5,7 +5,7 @@ export const htmlTitle = 'Chen';
 export const htmlConfig: HtmlConfig = {
   title: htmlTitle,
   template: './public/index.html',
-  favicon: './public/favicon.png',
+  favicon: './public/favicon.jpg',
   templateParameters: {
     title: htmlTitle,
   },

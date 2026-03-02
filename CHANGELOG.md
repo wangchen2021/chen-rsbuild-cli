@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.26](https://github.com/wangchen2021/chen-rsbuild-cli/compare/v1.0.25...v1.0.26) (2026-03-02)
+
+### Features
+
+- cicd change ([0fddfcc](https://github.com/wangchen2021/chen-rsbuild-cli/commit/0fddfcc9765b47b77d347f9a474c02250a47027e))
+
 ## [1.0.25](https://github.com/wangchen2021/chen-rsbuild-cli/compare/v1.0.24...v1.0.25) (2026-03-02)
 
 ### Features

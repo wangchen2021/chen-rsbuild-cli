@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.17](https://github.com/wangchen2021/chen-rsbuild-cli/compare/v1.0.16...v1.0.17) (2026-03-02)
+
+### Features
+
+- node ([cda7aac](https://github.com/wangchen2021/chen-rsbuild-cli/commit/cda7aac24dd4f4a8e63f6b34d80838dc6e570965))
+
 ## [1.0.16](https://github.com/wangchen2021/chen-rsbuild-cli/compare/v1.0.15...v1.0.16) (2026-03-02)
 
 ### Features

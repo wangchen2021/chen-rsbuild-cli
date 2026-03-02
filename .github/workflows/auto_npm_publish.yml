@@ -1,8 +1,5 @@
 name: Auto Publish to GitHub Private Registry
 
-# 触发条件：
-# 1. 创建新的 GitHub Release 时自动触发
-# 2. 可以手动触发工作流
 on:
   release:
     types: [published]
@@ -12,135 +9,94 @@ jobs:
   publish:
     name: Publish to GitHub Packages
     runs-on: ubuntu-latest
-    
-    # 权限配置：需要 packages 写入权限 + contents 读取权限
     permissions:
       packages: write
       contents: read
-      id-token: write
     
     steps:
-      # 1. 检出代码（使用 release 对应的 tag）
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.release.tag_name }}
-          fetch-depth: 0 # 确保能读取 tag 信息
+          fetch-depth: 0
 
-      # 2. 安装 pnpm（与本地版本一致）
       - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
           version: 10.20.0
 
-      # 3. 设置 Node.js 环境（关键：正确配置 registry 认证）
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 24.11.0
-          # 核心：配置 GitHub Packages 作为作用域 registry
-          registry-url: "https://npm.pkg.github.com/"
-          # 关联包作用域（必须与你的包名前缀一致）
-          scope: "@wangchen2021"
 
-      # 4. 安装依赖（使用淘宝源加速，避免网络问题）
       - name: Install dependencies
         run: |
-          # 临时配置 npm 源加速依赖安装
           npm config set registry https://registry.npmmirror.com/
           pnpm install --frozen-lockfile
-          # 恢复 registry 为 GitHub Packages
-          npm config set registry https://npm.pkg.github.com/
+          npm config delete registry
 
-      # 5. 构建项目
       - name: Build
         run: pnpm run build
 
-      # 6. 验证构建输出（增强校验）
       - name: Verify build output
         run: |
           echo "验证构建输出..."
           ls -la dist/
-          # 支持 cjs/js/mjs 三种产物格式
           if [ ! -f "dist/index.js" ] && [ ! -f "dist/index.cjs" ] && [ ! -f "dist/index.mjs" ]; then
             echo "❌ 构建失败: dist 目录下无入口文件"
-            ls -la dist/
             exit 1
           fi
           echo "✅ 构建验证通过"
 
-      # 7. 安全配置 GitHub Packages 认证
       - name: Authenticate to GitHub Packages
         run: |
-          # 利用 actions/setup-node 自动生成的认证，无需手动写 token
-          # 验证认证状态（修复 whoami 命令）
-          echo "验证 GitHub Packages 认证..."
-          npm whoami --scope=@wangchen2021 --registry=https://npm.pkg.github.com
-          echo "✅ 认证成功"
-          # 打印配置确认
+          # 彻底清理旧配置
+          npm config delete always-auth
+          rm -f ~/.npmrc ~/.pnpmrc
+          
+          # 配置 PAT 认证
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GH_PACKAGES_TOKEN }}" > ~/.npmrc
+          echo "@wangchen2021:registry=https://npm.pkg.github.com" >> ~/.npmrc
+          
+          # 验证配置和认证
+          echo "当前 .npmrc 配置："
           cat ~/.npmrc
-          echo "pnpm 配置确认:"
-          pnpm config get registry
-          pnpm config get "@wangchen2021:registry"
+          echo "验证认证状态..."
+          npm whoami --registry=https://npm.pkg.github.com
+          echo "✅ 认证成功"
 
-      # 8. 发布到 GitHub Packages（优化发布命令）
       - name: Publish to GitHub Packages
         env:
-          # 使用内置 GITHUB_TOKEN 作为认证令牌（由 actions/setup-node 自动使用）
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
         run: |
-          echo "发布到 GitHub Packages..."
-          # 关键：移除手动 --registry，依赖 setup-node 的配置，避免冲突
+          echo "发布版本: $(node -p "require('./package.json').version")"
           pnpm publish \
             --access public \
             --tag latest \
+            --registry=https://npm.pkg.github.com \
             --no-git-checks \
             --verbose
           echo "✅ 发布成功"
 
-      # 9. 验证发布结果（增强容错）
       - name: Verify publication
         run: |
-          echo "验证发布结果..."
-          sleep 10  # 延长等待时间，确保包已同步
-          
-          # 获取发布的版本号
+          sleep 10
           VERSION=$(node -p "require('./package.json').version")
-          echo "发布的版本: $VERSION"
-          
-          # 容错验证（失败不终止工作流）
+          echo "验证版本 $VERSION 是否发布成功..."
           if npm view @wangchen2021/chen-rsbuild-cli@$VERSION version --registry=https://npm.pkg.github.com; then
-            echo "✅ 包已成功发布到 GitHub Packages"
+            echo "✅ 包发布验证通过"
           else
-            echo "⚠️  包发布验证失败，可能是同步延迟，请稍后手动检查："
-            echo "npm view @wangchen2021/chen-rsbuild-cli --registry=https://npm.pkg.github.com"
+            echo "⚠️  包同步延迟，建议稍后手动检查"
           fi
 
-      # 10. 生成发布摘要（优化格式）
       - name: Create release summary
         if: success()
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          
           echo "## 🎉 发布成功" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| 项⽬ | 内容 |" >> $GITHUB_STEP_SUMMARY
+          echo "| 项目 | 内容 |" >> $GITHUB_STEP_SUMMARY
           echo "|------|------|" >> $GITHUB_STEP_SUMMARY
           echo "| 包名 | @wangchen2021/chen-rsbuild-cli |" >> $GITHUB_STEP_SUMMARY
           echo "| 版本 | $VERSION |" >> $GITHUB_STEP_SUMMARY
-          echo "| 发布源 | GitHub Packages (私有 registry) |" >> $GITHUB_STEP_SUMMARY
-          echo "| 访问地址 | https://npm.pkg.github.com/@wangchen2021/chen-rsbuild-cli |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 安装命令" >> $GITHUB_STEP_SUMMARY
-          echo '```bash' >> $GITHUB_STEP_SUMMARY
-          echo "# 1. 配置 GitHub Packages 认证（替换 YOUR_GITHUB_TOKEN）" >> $GITHUB_STEP_SUMMARY
-          echo 'npm config set //npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN' >> $GITHUB_STEP_SUMMARY
-          echo 'npm config set @wangchen2021:registry=https://npm.pkg.github.com' >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "# 2. 安装包" >> $GITHUB_STEP_SUMMARY
-          echo "npm install -g @wangchen2021/chen-rsbuild-cli@$VERSION" >> $GITHUB_STEP_SUMMARY
-          echo "# 或使用 pnpm" >> $GITHUB_STEP_SUMMARY
-          echo "pnpm add -g @wangchen2021/chen-rsbuild-cli@$VERSION" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**发布时间:** $(date '+%Y-%m-%d %H:%M:%S')" >> $GITHUB_STEP_SUMMARY
+          echo "| 发布源 | GitHub Packages |" >> $GITHUB_STEP_SUMMARY

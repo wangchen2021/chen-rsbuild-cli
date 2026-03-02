@@ -23,7 +23,7 @@ export default defineConfig((options) => {
     },
 
     // 输出格式：只使用 CJS 确保最大兼容性
-    format: ['cjs'],
+    format: ['esm'],
 
     target: 'node24',
 

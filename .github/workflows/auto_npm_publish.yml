@@ -1,4 +1,8 @@
-name: Publish to GitHub Packages
+name: Auto Publish to GitHub Private Registry
+
+# 触发条件：
+# 1. 创建新的 GitHub Release 时自动触发
+# 2. 可以手动触发工作流
 on:
   release:
     types: [published]
@@ -6,50 +10,107 @@ on:
 
 jobs:
   publish:
+    name: Publish to GitHub Packages
     runs-on: ubuntu-latest
+    
+    # 权限配置：需要 packages 写入权限
     permissions:
       packages: write
       contents: read
-
+    
     steps:
-      - uses: actions/checkout@v4
+      # 1. 检出代码（使用 release 对应的 tag）
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
 
-      # 1. 安装 pnpm（和本地一致）
+      # 2. 安装 pnpm（与本地版本一致）
       - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
           version: 10.20.0
 
-      # 2. 配置 Node.js（和本地一致的 24.x 版本）
-      - name: Setup Node.js 24.x
+      # 3. 设置 Node.js 环境
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 24.11.0
-          # 关键：禁用 setup-node 自动注入的 Token
+          # 禁用自动注入的 registry 配置
           registry-url: ""
 
-      # 3. 安装依赖（和本地一致）
+      # 4. 安装依赖
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # 4. 构建（修复 TS 参数，和本地一致）
+      # 5. 构建项目
       - name: Build
-        run: |
-          # 修复 tsc --verbose 错误（和本地执行的命令一致）
-          sed -i 's/tsc --verbose/tsc/g' package.json
-          pnpm run build || tsc
+        run: pnpm run build
 
-      # 5. 复刻本地 npm login 认证（核心！）
-      - name: Login to GitHub Packages
+      # 6. 验证构建输出
+      - name: Verify build output
         run: |
-          # 完全复刻本地 npm login 生成的 .npmrc 内容
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+          echo "验证构建输出..."
+          ls -la dist/
+          [ -f "dist/index.js" ] || (echo "构建失败: dist/index.js 不存在" && exit 1)
+          echo "✅ 构建验证通过"
+
+      # 7. 配置 GitHub Packages 认证
+      - name: Configure GitHub Packages Auth
+        run: |
+          # 创建 .npmrc 文件用于 GitHub Packages 认证
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
           echo "@wangchen2021:registry=https://npm.pkg.github.com" >> ~/.npmrc
           echo "always-auth=true" >> ~/.npmrc
           
-          # 验证认证（和本地执行 npm whoami 一致）
+          # 验证认证
+          echo "验证 GitHub Packages 认证..."
           npm whoami --registry=https://npm.pkg.github.com
+          echo "✅ 认证成功"
 
-      # 6. 发布（和本地执行 npm publish/pnpm publish 一致）
-      - name: Publish package
-        run: pnpm publish --access public --tag latest
+      # 8. 发布到 GitHub Packages
+      - name: Publish to GitHub Packages
+        run: |
+          echo "发布到 GitHub Packages..."
+          pnpm publish --access public --tag latest --registry=https://npm.pkg.github.com
+          echo "✅ 发布成功"
+
+      # 9. 验证发布结果
+      - name: Verify publication
+        run: |
+          echo "验证发布结果..."
+          sleep 5  # 等待发布完成
+          
+          # 获取发布的版本号
+          VERSION=$(node -p "require('./package.json').version")
+          echo "发布的版本: $VERSION"
+          
+          # 验证包是否可访问
+          npm view @wangchen2021/chen-rsbuild-cli@$VERSION version --registry=https://npm.pkg.github.com && \
+            echo "✅ 包已成功发布到 GitHub Packages" || \
+            echo "⚠️  包发布验证失败，请稍后检查"
+
+      # 10. 生成发布摘要
+      - name: Create release summary
+        if: success()
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          
+          echo "## 🎉 发布成功" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**包名:** @wangchen2021/chen-rsbuild-cli" >> $GITHUB_STEP_SUMMARY
+          echo "**版本:** $VERSION" >> $GITHUB_STEP_SUMMARY
+          echo "**发布到:** GitHub Packages (私有 registry)" >> $GITHUB_STEP_SUMMARY
+          echo "**访问地址:** https://npm.pkg.github.com/@wangchen2021/chen-rsbuild-cli" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**安装命令:**" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo "# 首先配置认证" >> $GITHUB_STEP_SUMMARY
+          echo 'echo "//npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN" >> ~/.npmrc' >> $GITHUB_STEP_SUMMARY
+          echo 'echo "@wangchen2021:registry=https://npm.pkg.github.com" >> ~/.npmrc' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "# 安装包" >> $GITHUB_STEP_SUMMARY
+          echo "npm install @wangchen2021/chen-rsbuild-cli@$VERSION" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**发布时间:** $(date)" >> $GITHUB_STEP_SUMMARY

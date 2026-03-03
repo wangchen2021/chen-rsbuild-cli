@@ -3,10 +3,6 @@ import { dependencies, devDependencies, version } from './package.json';
 import builtinModules from 'module';
 import dayjs from 'dayjs';
 
-/**
- * 企业级 CLI 构建配置
- * 目标：稳定、可靠、兼容性好、易维护
- */
 export default defineConfig((options) => {
   // 自动生成外部依赖列表（内置模块 + 第三方依赖）
   const externalDependencies = [
@@ -22,7 +18,7 @@ export default defineConfig((options) => {
       index: 'src/index.ts',
     },
 
-    // 输出格式：只使用 CJS 确保最大兼容性
+    // 输出格式
     format: ['esm'],
 
     target: 'node24',
@@ -34,7 +30,7 @@ export default defineConfig((options) => {
     clean: !options.watch,
 
     // 源码映射：关闭以减小文件大小
-    sourcemap: false,
+    sourcemap: 'inline',
 
     // 压缩：关闭以避免兼容性问题
     minify: false,
@@ -43,7 +39,6 @@ export default defineConfig((options) => {
     dts: false,
     // 外部依赖（不打包，避免兼容性问题）
     external: externalDependencies,
-    // 平台：Node.js
     platform: 'node',
 
     // 禁用代码分割

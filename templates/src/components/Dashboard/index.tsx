@@ -21,8 +21,8 @@ const Dashboard: React.FC = () => {
     {
       icon: '🚀',
       title: 'Modern Stack',
-      description: 'React 18 + TypeScript + RSBuild',
-      statValue: 'v18',
+      description: 'React 19 + TypeScript + RSBuild',
+      statValue: 'v19',
       statLabel: 'React',
     },
   ];

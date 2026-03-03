@@ -4,7 +4,7 @@
 
 ![RSBuild](https://img.shields.io/badge/RSBuild-React-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6)
-![React](https://img.shields.io/badge/React-18+-61DAFB)
+![React](https://img.shields.io/badge/React-19+-61DAFB)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 **下一代企业级 React 应用模板**

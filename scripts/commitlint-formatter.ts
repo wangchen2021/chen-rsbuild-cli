@@ -60,8 +60,8 @@ export default function commitlintFormatter(results: FormatterInput): string {
 
   // 输出示例（格式化）
   console.log('\n💡 正确格式示例:');
-  console.log('   1. feat(components): 添加新的健身课程组件');
-  console.log('   2. fix(core): 修复姿态识别算法 bug');
+  console.log('   1. feat(components): 添加新的组件');
+  console.log('   2. fix(core): 修复算法 bug');
   console.log('   3. docs: 更新 README 文件');
   console.log('   4. refactor(util): 优化日期处理函数');
 
